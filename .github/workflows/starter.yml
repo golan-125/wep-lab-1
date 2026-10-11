@@ -1,0 +1,8 @@
+name: starter
+on:
+  workflow_dispatch:
+jobs:
+  s:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo starter
