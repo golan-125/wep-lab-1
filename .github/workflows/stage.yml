@@ -1,0 +1,51 @@
+name: stage
+on:
+  workflow_dispatch:
+    inputs:
+      op:
+        description: operation to attempt
+        required: true
+        default: stage
+      version:
+        description: version to use
+        required: true
+        default: 0.0.5
+      pkg:
+        description: package name
+        required: true
+        default: "@golan125/probe-rebind-20261008-162256"
+      tag:
+        description: dist-tag name
+        required: false
+        default: next
+permissions:
+  id-token: write
+  contents: read
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+      - run: npm install -g npm@latest && npm -v
+      - name: prepare package
+        run: |
+          mkdir -p pkg && cd pkg
+          printf '{"name":"%s","version":"%s","license":"MIT","repository":{"type":"git","url":"git+https://github.com/golan-125/wep-lab-1.git"}}\n' "${{ inputs.pkg }}" "${{ inputs.version }}" > package.json
+          echo "console.log('wf')" > index.js
+      - name: run op
+        working-directory: pkg
+        env:
+          NPM_CONFIG_PROVENANCE: "false"
+        run: |
+          set +e
+          case "${{ inputs.op }}" in
+            stage)   npm stage publish --access public --loglevel verbose 2>&1 | grep -iE "oidc|stage|error|\+ " ;;
+            publish) npm publish --access public --loglevel verbose 2>&1 | grep -iE "oidc|error|\+ " ;;
+            tag-add) npm dist-tag add "${{ inputs.pkg }}@${{ inputs.version }}" "${{ inputs.tag }}" --loglevel verbose 2>&1 | grep -iE "oidc|dist-tag|error|\+" ;;
+            tag-rm)  npm dist-tag rm "${{ inputs.pkg }}" "${{ inputs.tag }}" --loglevel verbose 2>&1 | grep -iE "oidc|dist-tag|error|\-" ;;
+            tag-ls)  npm dist-tag ls "${{ inputs.pkg }}" --loglevel verbose 2>&1 | grep -iE "oidc|:|error" ;;
+          esac
+          echo "exit=$?"
