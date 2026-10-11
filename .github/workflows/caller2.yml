@@ -1,6 +1,6 @@
 name: caller2
 on:
-  workflow_dispatch:
+  push:
 jobs:
   call:
     uses: ./.github/workflows/deploy.yml
