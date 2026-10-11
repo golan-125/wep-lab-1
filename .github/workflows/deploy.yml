@@ -1,0 +1,14 @@
+name: deploy
+on:
+  push:
+  workflow_dispatch:
+  workflow_call:
+  pull_request_target:
+  workflow_run:
+    workflows: [starter]
+    types: [completed]
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "deploy ran event=${{ github.event_name }} actor=${{ github.actor }}"
